@@ -1,7 +1,7 @@
 import random
 
 
-class Board():
+class TicTacToe():
     pieces = {
         'X': ' X ',
         'O': ' O ',
@@ -150,6 +150,8 @@ class Board():
         movePool = list(self.possibleMoves.values())
         if movePool:
             return random.choice(movePool)
+            #@todo
+            #build decision-tree for 'best' move
         else:
             return False
 
@@ -174,7 +176,5 @@ class Board():
 
 
 if __name__ == '__main__':
-    game = Board()
+    game = TicTacToe()
     game.mainLoop()
-
-    # print(bin(game.getEmptyCells())[1])
