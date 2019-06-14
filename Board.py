@@ -8,6 +8,16 @@ class Board():
         '.': '   '
     }
 
+    aiPlayers = {
+        'X': False,
+        'O': False
+    }
+
+    playerNames = {
+        'X': '',
+        'O': ''
+    }
+
     moves = {
         '1,1': 0b100000000,
         '1,2': 0b010000000,
@@ -20,6 +30,8 @@ class Board():
         '3,3': 0b000000001
     }
 
+    possibleMoves = {}
+
     winners = {
         0b111000000, 0b000111000, 0b000000111,
         0b100100100, 0b010010010, 0b001001001,
@@ -27,6 +39,9 @@ class Board():
     }
 
     def __init__(self):
+        self.resetGame()
+
+    def resetGame(self):
         self.state = {
             'X': 0b000000000,
             'O': 0b000000000
@@ -35,12 +50,38 @@ class Board():
             'X': 0,
             'O': 0
         }
-        self.starter = self.getStarter()
         self.winner = False
-        self.player = self.starter
+        self.draw = False
+        self.getStarter()
+
+    def mainLoop(self):
+        print('T-T-T')
+        self.getPlayerNames()
+        self.playGame()
+
+    def getPlayerNames(self):
+        for player in ['X', 'O']:
+            playerName = input('name for player '+player +
+                               '(press enter f. AI)?')
+            if (playerName == ''):
+                self.aiPlayers[player] = True
+                self.playerNames[player] = 'AI_'+player
+            else:
+                self.playerNames[player] = playerName
+
+    def playGame(self):
+        self.resetGame()
+        self.print()
+        while ((self.winner == False) and (self.draw == False)):
+            self.rounds[self.player] += 1
+            self.move()
+            self.print()
+            self.checkForWinner()
+            self.switchPlayer()
 
     def getStarter(self):
-        return ('X', 'O')[random.randint(0, 1)]
+        self.starter = ('X', 'O')[random.randint(0, 1)]
+        self.player = self.starter
 
     def switchPlayer(self):
         self.player = ('X', 'O')[self.player == 'X']
@@ -71,37 +112,57 @@ class Board():
                 line = ''
 
     def move(self):
-        move = input('Move for '+game.player+': ')
-        moveMask = self.transformCoordinates(move)
-        if (moveMask == False):
-            self.move()
-        else:
-            if (self.isMovePossible(moveMask)):
-                self.state[self.player] |= moveMask
-            else:
-                print('move not possible')
+        self.updatePossibleMoves()
+        if not self.possibleMoves:
+            self.draw=True
+            return
+        if (self.aiPlayers[self.player] == False):
+            move = input('Move for '+self.playerNames[game.player]+': ')
+            moveMask = self.transformCoordinates(move)
+            if moveMask == False:
                 self.move()
+            else:
+                if moveMask in self.possibleMoves.values():
+                    self.state[self.player] |= moveMask
+                else:
+                    print('move not possible')
+                    self.move()
+        else:
+            moveMask = self.getAIMove()
+            self.state[self.player] |= self.getAIMove()
+                
 
     def isMovePossible(self, moveMask):
         empty = self.getEmptyCells()
         return moveMask & empty
 
-    def playGame(self):
-        self.print()
-        while self.winner == False:
-            self.rounds[self.player] += 1
-            self.move()
-            self.print()
-            self.checkForWinner()
-            self.switchPlayer()
-
     def checkForWinner(self):
-        print('check for win')
-        for possibleWin in self.winners:
-            if ((possibleWin & self.state[self.player]) == possibleWin):
-                print("Winner is player "+self.player+", needed " +
-                      str(self.rounds[self.player])+" rounds to win")
-                self.winner = self.player
+        if self.draw:
+            print("Draw after " + str(self.rounds[self.player])+" rounds")
+        else:
+            for possibleWin in self.winners:
+                if ((possibleWin & self.state[self.player]) == possibleWin):
+                    print("Winner is player "+self.playerNames[self.player]+", needed " +
+                        str(self.rounds[self.player])+" rounds to win")
+                    self.winner = self.player
+
+    def getAIMove(self):
+        movePool = list(self.possibleMoves.values())
+        if movePool:
+            return random.choice(movePool)
+        else:
+            return False
+
+    def updatePossibleMoves(self):
+        possibleMoves = {}
+        for moveId, move in self.moves.items():
+            if (self.isMovePossible(move)):
+                possibleMoves[moveId] = move
+        self.possibleMoves=possibleMoves
+
+    def getPossibleMoves(self):
+        return self.possibleMoves
+        
 
     def transformCoordinates(self, move):
         """transform x,y to binary"""
@@ -114,6 +175,6 @@ class Board():
 
 if __name__ == '__main__':
     game = Board()
-    game.playGame()
+    game.mainLoop()
 
     # print(bin(game.getEmptyCells())[1])
