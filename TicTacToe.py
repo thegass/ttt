@@ -78,6 +78,11 @@ class TicTacToe():
             self.print()
             self.checkForWinner()
             self.switchPlayer()
+        if self.draw:
+            print("Draw")
+        if self.winner:
+            print("Winner is player "+self.playerNames[self.winner]+", needed " +
+                  str(self.rounds[self.winner])+" rounds to win")
 
     def getStarter(self):
         self.starter = ('X', 'O')[random.randint(0, 1)]
@@ -91,6 +96,7 @@ class TicTacToe():
 
     def print(self):
         # display board
+        print()
         divider = '+---+---+---+'
         print(divider)
         count = 0
@@ -114,7 +120,7 @@ class TicTacToe():
     def move(self):
         self.updatePossibleMoves()
         if not self.possibleMoves:
-            self.draw=True
+            self.draw = True
             return
         if (self.aiPlayers[self.player] == False):
             move = input('Move for '+self.playerNames[game.player]+': ')
@@ -129,42 +135,80 @@ class TicTacToe():
                     self.move()
         else:
             moveMask = self.getAIMove()
-            self.state[self.player] |= self.getAIMove()
-                
-
-    def isMovePossible(self, moveMask):
-        empty = self.getEmptyCells()
-        return moveMask & empty
+            self.state[self.player] |= moveMask
 
     def checkForWinner(self):
-        if self.draw:
-            print("Draw after " + str(self.rounds[self.player])+" rounds")
-        else:
+        if not self.draw:
             for possibleWin in self.winners:
                 if ((possibleWin & self.state[self.player]) == possibleWin):
-                    print("Winner is player "+self.playerNames[self.player]+", needed " +
-                        str(self.rounds[self.player])+" rounds to win")
                     self.winner = self.player
+
+    moveValues = {
+        '1,1': -100,
+        '1,2': -100,
+        '1,3': -100,
+        '2,1': -100,
+        '2,2': -100,
+        '2,3': -100,
+        '3,1': -100,
+        '3,2': -100,
+        '3,3': -100
+    }
+
+    def evalAIMove(self, move, preValue):
+        evalBoard = TicTacToe()
+        evalBoard.state = self.state.copy()
+        evalBoard.rounds = self.rounds.copy()
+        evalBoard.player = self.player
+        evalBoard.aiPlayers = {
+            'X': True,
+            'O': True
+        }
+        evalBoard.state[self.player] |= move
+        evalBoard.checkForWinner()
+        while ((evalBoard.winner == False) and (evalBoard.draw == False)):
+            print('.', end='')
+            evalBoard.switchPlayer()
+            evalBoard.move()
+            evalBoard.checkForWinner()
+        if (evalBoard.winner == self.player):
+            return preValue + 1
+        else:
+            if (evalBoard.draw):
+                return preValue
+            else:
+                return preValue - 1
 
     def getAIMove(self):
         movePool = list(self.possibleMoves.values())
         if movePool:
-            return random.choice(movePool)
-            #@todo
-            #build decision-tree for 'best' move
-        else:
+            if ((self.starter == self.player) and (self.state[self.player] == 0b000000000)):
+                return random.choice(movePool)
+            for moveId, move in self.possibleMoves.items():
+                #print ('.',end='')
+                self.moveValues[moveId] = self.evalAIMove(
+                    move, self.moveValues[moveId])
+            sortedValues = sorted(self.moveValues.items(),
+                                  key=lambda x: x[1], reverse=True)
+            for item in sortedValues:
+                if item[0] in self.possibleMoves.keys():
+                    return self.possibleMoves[item[0]]
+            print('no move found')
             return False
+
+    def isMovePossible(self, moveMask):
+        empty = self.getEmptyCells()
+        return moveMask & empty
 
     def updatePossibleMoves(self):
         possibleMoves = {}
         for moveId, move in self.moves.items():
             if (self.isMovePossible(move)):
                 possibleMoves[moveId] = move
-        self.possibleMoves=possibleMoves
+        self.possibleMoves = possibleMoves
 
     def getPossibleMoves(self):
         return self.possibleMoves
-        
 
     def transformCoordinates(self, move):
         """transform x,y to binary"""
