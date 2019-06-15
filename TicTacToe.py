@@ -32,6 +32,8 @@ class TicTacToe():
 
     possibleMoves = {}
 
+    depth = 0
+
     winners = {
         0b111000000, 0b000111000, 0b000000111,
         0b100100100, 0b010010010, 0b001001001,
@@ -157,6 +159,7 @@ class TicTacToe():
 
     def evalAIMove(self, move, preValue):
         evalBoard = TicTacToe()
+        evalBoard.depth = self.depth + 1
         evalBoard.state = self.state.copy()
         evalBoard.rounds = self.rounds.copy()
         evalBoard.player = self.player
@@ -167,7 +170,6 @@ class TicTacToe():
         evalBoard.state[self.player] |= move
         evalBoard.checkForWinner()
         while ((evalBoard.winner == False) and (evalBoard.draw == False)):
-            print('.', end='')
             evalBoard.switchPlayer()
             evalBoard.move()
             evalBoard.checkForWinner()
@@ -179,19 +181,26 @@ class TicTacToe():
             else:
                 return preValue - 1
 
+    def resetMoveValues(self):
+        for key in self.moveValues.keys():
+            self.moveValues[key]=-100
+
     def getAIMove(self):
         movePool = list(self.possibleMoves.values())
         if movePool:
             if ((self.starter == self.player) and (self.state[self.player] == 0b000000000)):
                 return random.choice(movePool)
             for moveId, move in self.possibleMoves.items():
-                #print ('.',end='')
                 self.moveValues[moveId] = self.evalAIMove(
                     move, self.moveValues[moveId])
             sortedValues = sorted(self.moveValues.items(),
                                   key=lambda x: x[1], reverse=True)
+            if (self.depth == 0):
+                self.resetMoveValues()
             for item in sortedValues:
                 if item[0] in self.possibleMoves.keys():
+                    if (self.depth==0):
+                        print('AI Move: '+str(item[0]))
                     return self.possibleMoves[item[0]]
             print('no move found')
             return False
