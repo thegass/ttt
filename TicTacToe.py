@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import random
 
 
@@ -73,11 +75,10 @@ class TicTacToe():
 
     def playGame(self):
         self.resetGame()
-        self.print()
         while ((self.winner == False) and (self.draw == False)):
             self.rounds[self.player] += 1
             self.move()
-            self.print()
+            self.printBoard()
             self.checkForWinner()
             self.switchPlayer()
         if self.draw:
@@ -96,7 +97,7 @@ class TicTacToe():
     def getEmptyCells(self):
         return ~(self.state['X'] | self.state['O']) & ((1 << 9)-1)
 
-    def print(self):
+    def printBoard(self):
         # display board
         print()
         divider = '+---+---+---+'
