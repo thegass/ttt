@@ -20,27 +20,18 @@ class TicTacToe:
         'O': ''
     }
 
-    moves = {
-        '1,1': 0b100000000,
-        '1,2': 0b010000000,
-        '1,3': 0b001000000,
-        '2,1': 0b000100000,
-        '2,2': 0b000010000,
-        '2,3': 0b000001000,
-        '3,1': 0b000000100,
-        '3,2': 0b000000010,
-        '3,3': 0b000000001
+    size = 3
+
+    moves = {}
+
+    moveValues = {
     }
 
     possible_moves = {}
 
     depth = 0
 
-    winners = {
-        0b111000000, 0b000111000, 0b000000111,
-        0b100100100, 0b010010010, 0b001001001,
-        0b100010001, 0b001010100
-    }
+    winners = []
 
     state = {}
     rounds = {}
@@ -49,16 +40,57 @@ class TicTacToe:
     starter = ''
     player = ''
 
-    def __init__(self):
+    def init_moves(self):
+        self.generate_moves()
+        self.generate_winners()
         self.reset_game()
+
+    def generate_moves(self):
+        if (len(self.moves) == 0):
+            index = self.size**2
+            for x_index in range(1, self.size + 1):
+                for y_index in range(1, self.size + 1):
+                    index -= 1
+                    self.moves[str(x_index)+','+str(y_index)] = 2**index
+                    self.moveValues[str(x_index)+','+str(y_index)] = -100
+
+    def generate_winners(self):
+        diagonal_winner1 = 0
+        diagonal_winner2 = 0
+        index = 0
+        if (len(self.winners) == 0):
+            y_winners = dict()
+            for x_index in range(1, self.size + 1):
+                x_winner = 0
+                for y_index in range(1, self.size + 1):
+                    index += 1
+                    value = self.moves[str(x_index)+','+str(y_index)]
+                    x_winner += value
+                    if y_index in y_winners:
+                        y_winners[y_index] += value
+                    else:
+                        y_winners[y_index] = value
+                    if (x_index == y_index):
+                        diagonal_winner1 += self.moves[str(
+                            x_index)+','+str(y_index)]
+                    if (x_index+y_index == (self.size+1)):
+                        diagonal_winner2 += self.moves[str(
+                            x_index)+','+str(y_index)]
+
+                self.winners.append(x_winner)
+            for y_winner in y_winners.values():
+                self.winners.append(y_winner)
+            self.winners.append(diagonal_winner1)
+            self.winners.append(diagonal_winner2)
+            print(repr(self.winners))
 
     def reset_game(self):
         """
 
         """
         self.state = {
-            'X': 0b000000000,
-            'O': 0b000000000
+            'X': 0,
+            'O': 0
         }
         self.rounds = {
             'X': 0,
@@ -73,8 +105,20 @@ class TicTacToe:
 
         """
         print('T-T-T')
+        self.get_board_size()
+        self.init_moves()
         self.get_player_names()
         self.play_game()
+
+    def get_board_size(self):
+        """
+
+        """
+        size = input('board size?')
+        if size.isdigit():
+            self.size = int(size)
+        else:
+            self.get_board_size()
 
     def get_player_names(self):
         """
@@ -127,7 +171,7 @@ class TicTacToe:
 
         :return:
         """
-        return ~(self.state['X'] | self.state['O']) & ((1 << 9) - 1)
+        return ~(self.state['X'] | self.state['O']) & ((1 << (self.size**2)) - 1)
 
     def print_board(self):
         """
@@ -135,7 +179,9 @@ class TicTacToe:
         """
         # display board
         print()
-        divider = '+---+---+---+'
+        divider = '+'
+        for col in range(0, self.size):
+            divider += '---+'
         print(divider)
         count = 0
         line = ''
@@ -148,7 +194,7 @@ class TicTacToe:
             if value & self.get_empty_cells():
                 line += self.pieces['.']
             count += 1
-            if count == 3:
+            if count == self.size:
                 line += '|'
                 print(line)
                 count = 0
@@ -188,18 +234,6 @@ class TicTacToe:
                 if (possible_win & self.state[self.player]) == possible_win:
                     self.winner = self.player
 
-    moveValues = {
-        '1,1': -100,
-        '1,2': -100,
-        '1,3': -100,
-        '2,1': -100,
-        '2,2': -100,
-        '2,3': -100,
-        '3,1': -100,
-        '3,2': -100,
-        '3,3': -100
-    }
-
     def eval_ai_move(self, move, pre_value):
         """
 
@@ -208,7 +242,10 @@ class TicTacToe:
         :return:
         """
         eval_board = TicTacToe()
+        eval_board.size = self.size
         eval_board.depth = self.depth + 1
+        if (self.depth > self.size):
+            return pre_value
         eval_board.state = self.state.copy()
         eval_board.rounds = self.rounds.copy()
         eval_board.player = self.player
@@ -218,15 +255,21 @@ class TicTacToe:
         }
         eval_board.state[self.player] |= move
         eval_board.check_for_winner()
-        while (eval_board.winner is False) and (eval_board.draw is False):
+        while ((eval_board.winner == False) and (eval_board.draw == False)):
             eval_board.switch_player()
             eval_board.move()
             eval_board.check_for_winner()
-        if eval_board.winner == self.player:
-            return pre_value + 1
-        if eval_board.draw:
-            return pre_value
-        return pre_value - 1
+        if (self.depth == 0):
+            factor = 1+(self.size**2)
+        else:
+            factor = 1+(self.size**2) - self.depth
+        if (eval_board.winner == self.player):
+            return pre_value + factor
+        else:
+            if (eval_board.draw):
+                return pre_value + factor/2
+            else:
+                return pre_value - factor*2
 
     def reset_move_values(self):
         """
@@ -245,7 +288,12 @@ class TicTacToe:
             if ((self.starter == self.player) and (
                     self.state[self.player] == 0b000000000)):
                 return random.choice(move_pool)
-            for move_id, move in self.possible_moves.items():
+            sample_size = self.size
+            if (sample_size > len(self.possible_moves.items())):
+                sample_size = len(self.possible_moves.items())
+            random_moves = random.sample(
+                self.possible_moves.items(), sample_size)
+            for move_id, move in random_moves:
                 self.moveValues[move_id] = self.eval_ai_move(
                     move, self.moveValues[move_id])
             sorted_values = sorted(self.moveValues.items(),
