@@ -173,13 +173,17 @@ class TicTacToe():
             evalBoard.switchPlayer()
             evalBoard.move()
             evalBoard.checkForWinner()
+        if (self.depth == 0):
+            factor=1000
+        else:
+            factor=1000 - self.depth
         if (evalBoard.winner == self.player):
-            return preValue + 1
+            return preValue + factor
         else:
             if (evalBoard.draw):
-                return preValue
+                return preValue + factor/2
             else:
-                return preValue - 1
+                return preValue - factor*2
 
     def resetMoveValues(self):
         for key in self.moveValues.keys():
