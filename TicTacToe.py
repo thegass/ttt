@@ -244,8 +244,8 @@ class TicTacToe:
         eval_board = TicTacToe()
         eval_board.size = self.size
         eval_board.depth = self.depth + 1
-        if (self.depth > self.size):
-            return pre_value
+        #if (self.depth > self.size*2):
+        #    return pre_value
         eval_board.state = self.state.copy()
         eval_board.rounds = self.rounds.copy()
         eval_board.player = self.player
@@ -288,11 +288,13 @@ class TicTacToe:
             if ((self.starter == self.player) and (
                     self.state[self.player] == 0b000000000)):
                 return random.choice(move_pool)
-            sample_size = self.size
+            sample_size = self.size*2
             if (sample_size > len(self.possible_moves.items())):
                 sample_size = len(self.possible_moves.items())
+
+            
             random_moves = random.sample(
-                self.possible_moves.items(), sample_size)
+                tuple(self.possible_moves.items()), sample_size)
             for move_id, move in random_moves:
                 self.moveValues[move_id] = self.eval_ai_move(
                     move, self.moveValues[move_id])
