@@ -244,7 +244,7 @@ class TicTacToe:
         eval_board = TicTacToe()
         eval_board.size = self.size
         eval_board.depth = self.depth + 1
-        #if (self.depth > self.size*2):
+        # if (self.depth > self.size*2):
         #    return pre_value
         eval_board.state = self.state.copy()
         eval_board.rounds = self.rounds.copy()
@@ -292,7 +292,6 @@ class TicTacToe:
             if (sample_size > len(self.possible_moves.items())):
                 sample_size = len(self.possible_moves.items())
 
-            
             random_moves = random.sample(
                 tuple(self.possible_moves.items()), sample_size)
             for move_id, move in random_moves:
