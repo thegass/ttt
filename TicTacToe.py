@@ -292,7 +292,7 @@ class TicTacToe:
             if (sample_size > len(self.possible_moves.items())):
                 sample_size = len(self.possible_moves.items())
             random_moves = random.sample(
-                self.possible_moves.items(), sample_size)
+                tuple(self.possible_moves.items()), sample_size)
             for move_id, move in random_moves:
                 self.moveValues[move_id] = self.eval_ai_move(
                     move, self.moveValues[move_id])
