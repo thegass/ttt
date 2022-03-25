@@ -46,7 +46,7 @@ class TicTacToe:
         self.reset_game()
 
     def generate_moves(self):
-        if (len(self.moves) == 0):
+        if len(self.moves) == 0:
             index = self.size**2
             for x_index in range(1, self.size + 1):
                 for y_index in range(1, self.size + 1):
@@ -58,7 +58,7 @@ class TicTacToe:
         diagonal_winner1 = 0
         diagonal_winner2 = 0
         index = 0
-        if (len(self.winners) == 0):
+        if len(self.winners) == 0:
             y_winners = dict()
             for x_index in range(1, self.size + 1):
                 x_winner = 0
@@ -70,10 +70,10 @@ class TicTacToe:
                         y_winners[y_index] += value
                     else:
                         y_winners[y_index] = value
-                    if (x_index == y_index):
+                    if x_index == y_index:
                         diagonal_winner1 += self.moves[str(
                             x_index)+','+str(y_index)]
-                    if (x_index+y_index == (self.size+1)):
+                    if x_index+y_index == (self.size+1):
                         diagonal_winner2 += self.moves[str(
                             x_index)+','+str(y_index)]
 
@@ -244,7 +244,7 @@ class TicTacToe:
         eval_board = TicTacToe()
         eval_board.size = self.size
         eval_board.depth = self.depth + 1
-        if (self.depth > self.size):
+        if self.depth > self.size:
             return pre_value
         eval_board.state = self.state.copy()
         eval_board.rounds = self.rounds.copy()
