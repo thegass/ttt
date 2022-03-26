@@ -46,36 +46,36 @@ class TicTacToe:
         self.reset_game()
 
     def generate_moves(self):
-        if (len(self.moves) == 0):
+        if len(self.moves) == 0:
             index = self.size**2
             for x_index in range(1, self.size + 1):
                 for y_index in range(1, self.size + 1):
                     index -= 1
-                    self.moves[str(x_index)+','+str(y_index)] = 2**index
-                    self.moveValues[str(x_index)+','+str(y_index)] = -100
+                    self.moves[str(x_index) + ',' + str(y_index)] = 2**index
+                    self.moveValues[str(x_index) + ',' + str(y_index)] = -100
 
     def generate_winners(self):
         diagonal_winner1 = 0
         diagonal_winner2 = 0
         index = 0
-        if (len(self.winners) == 0):
+        if len(self.winners) == 0:
             y_winners = dict()
             for x_index in range(1, self.size + 1):
                 x_winner = 0
                 for y_index in range(1, self.size + 1):
                     index += 1
-                    value = self.moves[str(x_index)+','+str(y_index)]
+                    value = self.moves[str(x_index) + ',' + str(y_index)]
                     x_winner += value
                     if y_index in y_winners:
                         y_winners[y_index] += value
                     else:
                         y_winners[y_index] = value
-                    if (x_index == y_index):
+                    if x_index == y_index:
                         diagonal_winner1 += self.moves[str(
-                            x_index)+','+str(y_index)]
-                    if (x_index+y_index == (self.size+1)):
+                            x_index) + ',' + str(y_index)]
+                    if x_index + y_index == (self.size + 1):
                         diagonal_winner2 += self.moves[str(
-                            x_index)+','+str(y_index)]
+                            x_index) + ',' + str(y_index)]
 
                 self.winners.append(x_winner)
             for y_winner in y_winners.values():
@@ -117,8 +117,6 @@ class TicTacToe:
         size = input('board size?')
         if size.isdigit():
             self.size = int(size)
-        else:
-            self.get_board_size()
 
     def get_player_names(self):
         """
@@ -171,7 +169,8 @@ class TicTacToe:
 
         :return:
         """
-        return ~(self.state['X'] | self.state['O']) & ((1 << (self.size**2)) - 1)
+        return ~(self.state['X'] | self.state['O']) & (
+            (1 << (self.size**2)) - 1)
 
     def print_board(self):
         """
@@ -180,7 +179,7 @@ class TicTacToe:
         # display board
         print()
         divider = '+'
-        for col in range(0, self.size):
+        for _col in range(0, self.size):
             divider += '---+'
         print(divider)
         count = 0
@@ -235,16 +234,10 @@ class TicTacToe:
                     self.winner = self.player
 
     def eval_ai_move(self, move, pre_value):
-        """
-
-        :param move:
-        :param pre_value:
-        :return:
-        """
         eval_board = TicTacToe()
         eval_board.size = self.size
         eval_board.depth = self.depth + 1
-        if (self.depth > self.size):
+        if self.depth > self.size:
             return pre_value
         eval_board.state = self.state.copy()
         eval_board.rounds = self.rounds.copy()
@@ -255,21 +248,21 @@ class TicTacToe:
         }
         eval_board.state[self.player] |= move
         eval_board.check_for_winner()
-        while ((eval_board.winner == False) and (eval_board.draw == False)):
+        while ((eval_board.winner is False) and (eval_board.draw is False)):
             eval_board.switch_player()
             eval_board.move()
             eval_board.check_for_winner()
         if (self.depth == 0):
-            factor = 1+(self.size**2)
+            factor = 1 + (self.size**2)
         else:
-            factor = 1+(self.size**2) - self.depth
+            factor = 1 + (self.size**2) - self.depth
         if (eval_board.winner == self.player):
             return pre_value + factor
         else:
             if (eval_board.draw):
-                return pre_value + factor/2
+                return pre_value + factor / 2
             else:
-                return pre_value - factor*2
+                return pre_value - factor * 2
 
     def reset_move_values(self):
         """
@@ -292,7 +285,7 @@ class TicTacToe:
             if (sample_size > len(self.possible_moves.items())):
                 sample_size = len(self.possible_moves.items())
             random_moves = random.sample(
-                self.possible_moves.items(), sample_size)
+                tuple(self.possible_moves.items()), sample_size)
             for move_id, move in random_moves:
                 self.moveValues[move_id] = self.eval_ai_move(
                     move, self.moveValues[move_id])
