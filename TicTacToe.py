@@ -118,6 +118,11 @@ class TicTacToe:
         if size.isdigit():
             self.size = int(size)
 
+    def get_max_depth(self):
+        depth = input('max depth?')
+        if depth.isdigit():
+            self.depth = int(depth)
+
     def get_player_names(self):
         """
 
@@ -233,11 +238,17 @@ class TicTacToe:
                 if (possible_win & self.state[self.player]) == possible_win:
                     self.winner = self.player
 
+    def stop_searching(self):
+        if self.depth > len(self.possible_moves.items())/1.0:
+             print('max depth reached ' + str(self.depth) + '>' + str(len(self.possible_moves.items())/1.0))
+             return True
+        return False
+
     def eval_ai_move(self, move, pre_value):
         eval_board = TicTacToe()
         eval_board.size = self.size
         eval_board.depth = self.depth + 1
-        if self.depth > self.size:
+        if self.stop_searching():
             return pre_value
         eval_board.state = self.state.copy()
         eval_board.rounds = self.rounds.copy()
